@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI智能体项目实战特训营</title>
+<style>
+  :root{
+    --orange:#ff7a1a;
+    --amber:#ffb347;
+    --coral:#ff6a4d;
+    --deep:#ff4d17;
+    --text:#2e2419;
+    --muted:#8a6a50;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Helvetica Neue",Arial,sans-serif;
+    background:radial-gradient(1200px 800px at 85% -10%, #ffd9a8 0%, transparent 55%),
+               radial-gradient(1000px 700px at -10% 110%, #ffc1b8 0%, transparent 55%),
+               linear-gradient(160deg, #fff8ef 0%, #ffead7 100%);
+    color:var(--text);
+    overflow:hidden;
+    height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .aurora{position:absolute;border-radius:50%;filter:blur(100px);opacity:.75;z-index:0;animation:float 14s ease-in-out infinite;}
+  .a1{width:560px;height:560px;background:rgba(255,150,50,.55);top:-170px;left:-120px;}
+  .a2{width:500px;height:500px;background:rgba(255,110,90,.45);bottom:-190px;right:-100px;animation-delay:-5s;}
+  .a3{width:360px;height:360px;background:rgba(255,190,60,.5);top:42%;right:13%;animation-delay:-9s;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-40px) scale(1.08);}66%{transform:translate(-25px,25px) scale(.94);}}
+
+  #stars{position:absolute;inset:0;z-index:1;pointer-events:none;}
+  .star{position:absolute;border-radius:50%;background:#ffcf9e;opacity:.7;animation:twinkle 4s ease-in-out infinite;box-shadow:0 0 6px rgba(255,150,50,.6);}
+  @keyframes twinkle{0%,100%{opacity:.2;transform:scale(.7);}50%{opacity:.95;transform:scale(1.15);}}
+
+  #fsBtn{position:fixed;bottom:20px;right:20px;z-index:60;display:inline-flex;align-items:center;gap:8px;
+    padding:11px 20px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid rgba(255,122,26,.45);
+    color:#e05c00;font-size:14px;letter-spacing:2px;cursor:pointer;transition:.25s;box-shadow:0 6px 18px rgba(255,122,26,.18);}
+  #fsBtn:hover{background:#ff7a1a;border-color:#ff7a1a;color:#fff;}
+
+  /* 底部翻页 */
+  .nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;}
+  .nav button{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:999px;
+    background:rgba(255,255,255,.88);border:1px solid rgba(255,122,26,.45);color:#e05c00;
+    font-size:13px;letter-spacing:1px;cursor:pointer;transition:.25s;box-shadow:0 4px 12px rgba(255,122,26,.16);}
+  .nav button:hover:not(:disabled){background:linear-gradient(90deg,var(--orange),#ff4d4d);color:#fff;border-color:transparent;}
+  .nav button:disabled{opacity:.35;cursor:not-allowed;}
+  .nav .dots{display:flex;gap:8px;margin:0 4px;}
+  .nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,122,26,.3);transition:.25s;}
+  .nav .dot.on{background:var(--orange);box-shadow:0 0 10px var(--orange);}
+
+  /* 幻灯片 */
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    opacity:0;visibility:hidden;transform:translateX(60px);transition:opacity .5s ease, transform .5s ease;z-index:2;}
+  .slide.active{opacity:1;visibility:visible;transform:translateX(0);}
+  .slide.out-left{transform:translateX(-60px);}
+  .wrap{width:min(1680px,96vw);height:100vh;margin:0 auto;padding:6vh 0 5vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+
+  /* ===== 第 1 页 ===== */
+  .tagline{display:inline-flex;align-items:center;gap:12px;padding:10px 24px;border-radius:999px;
+    background:rgba(255,122,26,.14);border:1px solid rgba(255,122,26,.45);color:#c26100;
+    font-size:clamp(14px,1.3vw,19px);letter-spacing:4px;margin-bottom:1.8vh;}
+  .tagline::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px var(--orange);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  h1{font-size:clamp(42px,5.8vw,88px);font-weight:900;letter-spacing:6px;line-height:1.1;
+    background:linear-gradient(92deg, #ff7a1a 5%, #ffb347 35%, #ff4d17 80%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 16px rgba(255,122,26,.3));margin-bottom:1.6vh;}
+  .subtitle{font-size:clamp(19px,2.4vw,36px);font-weight:700;color:#3a2a18;letter-spacing:2px;margin-bottom:1.8vh;}
+  .subtitle .hl{color:#ff6a00;}
+
+  .lecturer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:1.8vh;}
+  .lecturer .name{padding:10px 24px;border-radius:12px;background:linear-gradient(90deg,var(--orange),#ff4d4d);
+    color:#fff;font-weight:700;font-size:clamp(15px,1.6vw,23px);letter-spacing:1px;box-shadow:0 6px 20px rgba(255,122,26,.35);}
+  .lecturer .role{padding:10px 24px;border-radius:12px;background:rgba(255,255,255,.75);
+    border:1px solid rgba(255,122,26,.4);color:var(--muted);font-size:clamp(13px,1.3vw,19px);letter-spacing:1px;}
+
+  .divider{width:min(760px,72%);height:1px;background:linear-gradient(90deg,transparent,rgba(255,122,26,.5),transparent);margin-bottom:1.6vh;}
+  .section-title{font-size:clamp(13px,1.2vw,18px);letter-spacing:10px;color:#b0763a;margin-bottom:1.4vh;text-transform:uppercase;}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4vw;width:100%;margin-bottom:2.2vh;}
+  .card{position:relative;padding:2.8vh 1.4vw 2.4vh;border-radius:18px;
+    background:linear-gradient(160deg,rgba(255,255,255,.9),rgba(255,255,255,.6));
+    border:1px solid rgba(255,150,80,.35);overflow:hidden;
+    box-shadow:0 10px 30px rgba(255,140,60,.12);}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--orange),var(--amber),var(--coral));}
+  .card .num{position:absolute;top:12px;right:16px;font-size:clamp(30px,3.4vw,52px);font-weight:900;color:rgba(255,122,26,.16);line-height:1;}
+  .card .icon{font-size:clamp(28px,2.8vw,44px);margin-bottom:1.4vh;display:inline-block;filter:drop-shadow(0 5px 12px rgba(255,122,26,.35));}
+  .card h3{font-size:clamp(16px,1.5vw,22px);font-weight:700;letter-spacing:1px;margin-bottom:.8vh;color:#3a2a18;}
+  .card p{font-size:clamp(12px,1.05vw,16px);color:var(--muted);line-height:1.5;}
+
+  .countdown-wrap{width:100%;padding:2.4vh 3vw 2.4vh;border-radius:20px;
+    background:linear-gradient(90deg,rgba(255,122,26,.16),rgba(255,190,60,.2));
+    border:1px solid rgba(255,122,26,.4);}
+  .countdown-label{font-size:clamp(14px,1.3vw,20px);letter-spacing:6px;color:#c26100;margin-bottom:1.4vh;font-weight:700;}
+  .timer{display:flex;justify-content:center;align-items:flex-start;gap:1.2vw;}
+  .t-box{display:flex;flex-direction:column;align-items:center;min-width:clamp(60px,8vw,120px);}
+  .t-val{font-size:clamp(36px,5vw,76px);font-weight:900;line-height:.95;font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#ff8c2e,#ff4d17);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 12px rgba(255,122,26,.25));}
+  .t-unit{font-size:clamp(12px,1.1vw,17px);color:#b0763a;margin-top:.8vh;letter-spacing:3px;font-weight:700;}
+  .t-sep{font-size:clamp(28px,3.2vw,52px);font-weight:300;color:rgba(176,118,58,.45);line-height:1;padding-top:4px;}
+
+  /* ===== 第 2 页：流程图 ===== */
+  .flow-title{font-size:clamp(34px,4.8vw,68px);font-weight:900;letter-spacing:6px;line-height:1.1;
+    background:linear-gradient(92deg, #ff7a1a 5%, #ffb347 35%, #ff4d17 80%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 16px rgba(255,122,26,.3));margin-bottom:1.4vh;}
+  .flow-sub{font-size:clamp(16px,1.9vw,26px);font-weight:700;color:#b0763a;letter-spacing:4px;margin-bottom:3vh;}
+
+  .diagram{display:flex;flex-direction:column;align-items:center;width:100%;}
+  .flow{display:flex;align-items:center;justify-content:center;width:100%;}
+  .node{position:relative;min-width:clamp(210px,17vw,300px);padding:3vh 1.6vw 2.6vh;border-radius:20px;
+    background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.68));
+    border:1px solid rgba(255,150,80,.42);overflow:hidden;
+    box-shadow:0 12px 32px rgba(255,140,60,.14);text-align:center;}
+  .node::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--orange),var(--amber),var(--coral));}
+  .node .n-en{display:block;font-size:clamp(11px,0.9vw,14px);letter-spacing:2px;color:#e58a3e;text-transform:uppercase;margin-bottom:1vh;}
+  .node .n-icon{font-size:clamp(32px,3.2vw,52px);margin-bottom:1vh;display:inline-block;filter:drop-shadow(0 5px 12px rgba(255,122,26,.35));}
+  .node h3{font-size:clamp(21px,2.1vw,32px);font-weight:800;letter-spacing:2px;color:#3a2a18;margin-bottom:1vh;}
+  .n-list{list-style:none;text-align:left;margin-top:1vh;}
+  .n-list li{font-size:clamp(12px,1vw,15px);color:#6b5137;line-height:1.5;padding-left:18px;position:relative;margin-bottom:.5vh;}
+  .n-list li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--orange);}
+  .n-list li.n-ex{color:#c26100;font-weight:700;margin-top:.2vh;}
+  .n-list li.n-ex::before{background:var(--coral);}
+
+  .arrow-h{width:clamp(58px,5.4vw,110px);flex:none;align-self:center;position:relative;height:2px;
+    background:linear-gradient(90deg,var(--amber),var(--orange));margin:0 6px;}
+  .arrow-h::after{content:"";position:absolute;right:-1px;top:-6px;border-left:10px solid var(--orange);border-top:7px solid transparent;border-bottom:7px solid transparent;}
+  .arrow-h .dot{position:absolute;left:0;top:-3px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 8px var(--orange);animation:slide 2s linear infinite;}
+  @keyframes slide{0%{left:0;}100%{left:calc(100% - 8px);}}
+
+  .vert{display:flex;align-items:center;gap:14px;height:clamp(44px,6.5vh,76px);margin:4px 0;}
+  .vlab{font-size:clamp(12px,1vw,15px);color:#b0763a;font-weight:700;letter-spacing:1px;
+    padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(255,122,26,.35);}
+  .vline{width:2px;height:100%;background:linear-gradient(180deg,var(--amber),var(--orange));position:relative;}
+  .vline::before{content:"";position:absolute;top:-6px;left:-5px;border-bottom:9px solid var(--orange);border-left:6px solid transparent;border-right:6px solid transparent;}
+  .vline::after{content:"";position:absolute;bottom:-6px;left:-5px;border-top:9px solid var(--orange);border-left:6px solid transparent;border-right:6px solid transparent;}
+
+  .mem-node{min-width:clamp(230px,17vw,300px);padding:2.4vh 1.8vw 2.2vh;border-radius:20px;
+    background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.68));
+    border:1px solid rgba(255,150,80,.42);box-shadow:0 12px 32px rgba(255,140,60,.14);text-align:center;position:relative;overflow:hidden;}
+  .mem-node::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--coral),var(--amber));}
+  .mem-node .n-en{display:block;font-size:clamp(11px,0.9vw,14px);letter-spacing:2px;color:#e58a3e;text-transform:uppercase;margin-bottom:.8vh;}
+  .mem-node .n-icon{font-size:clamp(28px,2.8vw,44px);margin-bottom:1vh;display:inline-block;filter:drop-shadow(0 5px 12px rgba(255,122,26,.35));}
+  .mem-node h3{font-size:clamp(20px,2vw,30px);font-weight:800;letter-spacing:2px;color:#3a2a18;margin-bottom:.8vh;}
+
+  /* ===== 第 3 页：人体比喻 ===== */
+  .analogy{position:relative;display:flex;align-items:center;justify-content:center;gap:3vw;width:100%;}
+  .body-svg{flex:none;height:clamp(380px,66vh,600px);filter:drop-shadow(0 10px 24px rgba(255,122,26,.18));}
+  .legend{display:flex;flex-direction:column;gap:1.5vh;text-align:left;min-width:clamp(260px,25vw,390px);}
+  .legend .item{display:flex;align-items:center;gap:14px;padding:1.5vh 1.4vw;border-radius:16px;
+    background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.65));
+    border:1px solid rgba(255,150,80,.4);box-shadow:0 8px 22px rgba(255,140,60,.12);}
+  .legend .chip{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:16px;}
+  .legend .txt b{font-size:clamp(15px,1.5vw,21px);color:#3a2a18;letter-spacing:1px;}
+  .legend .txt span{display:block;font-size:clamp(12px,1vw,15px);color:#8a6a50;margin-top:.3vh;}
+  .eyes-happy,.mouth-happy,.blush,.qm,.wave-emoji,.memfx{display:none;}
+  .body-svg.state-perception .eyes-normal{display:none;}
+  .body-svg.state-perception .eyes-happy{display:block;}
+  .body-svg.state-perception .mouth-normal{display:none;}
+  .body-svg.state-perception .mouth-happy{display:block;}
+  .body-svg.state-perception .blush{display:block;}
+  .body-svg.state-decision .qm{display:block;}
+  .body-svg.state-execution .wave-emoji{display:block;}
+  .body-svg.state-memory .memfx{display:block;}
+  .qm text{animation:bob 1.1s ease-in-out infinite;}
+  .qm text:nth-child(2){animation-delay:.18s;}
+  .qm text:nth-child(3){animation-delay:.36s;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+  .wave-emoji text{transform-box:fill-box;transform-origin:center;animation:wave2 .6s ease-in-out infinite;}
+  @keyframes wave2{0%,100%{transform:rotate(0);}50%{transform:rotate(28deg);}}
+  .memfx text{transform-box:fill-box;transform-origin:center;animation:pop .5s ease-out both;}
+  .memfx text:nth-child(2){animation-delay:.15s;}
+  .memfx text:nth-child(3){animation-delay:.3s;}
+  @keyframes pop{0%{transform:scale(0);opacity:0;}60%{transform:scale(1.3);opacity:1;}100%{transform:scale(1);opacity:1;}}
+  .rarm{transform-box:fill-box;transform-origin:top center;}
+  .body-svg.state-execution .rarm{animation:wavearm .6s ease-in-out infinite;}
+  @keyframes wavearm{0%,100%{transform:rotate(0);}50%{transform:rotate(-28deg);}}
+  .legend .item{cursor:pointer;transition:.25s;}
+  .legend .item:hover{border-color:rgba(255,122,26,.65);}
+  .legend .item.active{border-color:#ff7a1a;box-shadow:0 8px 22px rgba(255,122,26,.3);}
+  .organ{animation:glowpulse 2.4s ease-in-out infinite;}
+  @keyframes glowpulse{0%,100%{opacity:.55;}50%{opacity:1;}}
+  /* ===== 第 4 页：提问 ===== */
+  .q4-sub{font-size:clamp(14px,1.4vw,20px);letter-spacing:6px;color:#b0763a;margin-bottom:2vh;}
+  .big-q{font-size:clamp(36px,5.2vw,80px);font-weight:900;letter-spacing:2px;color:#3a2a18;line-height:1.15;margin-bottom:3.5vh;}
+  .big-q .mark{color:#ff6a00;}
+  .opts{display:flex;gap:1.3vw;justify-content:center;flex-wrap:wrap;margin-bottom:3.5vh;}
+  .opt{display:flex;flex-direction:column;align-items:center;gap:1vh;padding:2.6vh 2vw 2.2vh;border-radius:18px;
+    background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.65));
+    border:1px solid rgba(255,150,80,.35);min-width:clamp(108px,10vw,150px);
+    box-shadow:0 10px 28px rgba(255,140,60,.12);transition:.35s;}
+  .opt .o-ico{font-size:clamp(34px,3.6vw,56px);}
+  .opt .o-name{font-size:clamp(15px,1.5vw,22px);font-weight:700;color:#3a2a18;letter-spacing:1px;}
+  .reveal-btn{padding:13px 42px;border-radius:999px;border:none;cursor:pointer;
+    background:linear-gradient(90deg,#ff7a1a,#ff4d4d);color:#fff;
+    font-size:clamp(16px,1.6vw,22px);letter-spacing:3px;font-weight:700;
+    box-shadow:0 10px 26px rgba(255,122,26,.35);transition:.25s;}
+  .reveal-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(255,122,26,.45);}
+  .answer{max-height:0;opacity:0;overflow:hidden;transition:all .6s ease;width:min(760px,88%);}
+  #slide4.revealed .answer{max-height:300px;opacity:1;margin-top:3vh;}
+  #slide4.revealed .opt.correct-opt{border-color:#ff7a1a;box-shadow:0 0 0 3px rgba(255,122,26,.35),0 14px 34px rgba(255,122,26,.35);transform:translateY(-6px);}
+  #slide4.revealed .opt:not(.correct-opt){opacity:.35;filter:grayscale(.3);}
+  .answer .a-main{font-size:clamp(30px,3.6vw,56px);font-weight:900;color:#ff4d17;letter-spacing:4px;margin-bottom:1vh;}
+  .answer .a-txt{font-size:clamp(14px,1.4vw,20px);color:#6b5137;line-height:1.7;}
+  /* ===== 第 5 页：提示词核心原则 ===== */
+  .principles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vw;width:min(1320px,100%);}
+  .p-card{position:relative;padding:2.6vh 1.6vw 2.2vh;border-radius:20px;text-align:left;overflow:hidden;
+    background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.65));
+    border:1px solid rgba(255,150,80,.35);box-shadow:0 10px 30px rgba(255,140,60,.12);}
+  .p-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--orange),var(--amber),var(--coral));}
+  .p-top{display:flex;align-items:center;gap:12px;margin-bottom:1.2vh;}
+  .p-num{font-size:clamp(13px,1.2vw,17px);font-weight:900;color:#e05c00;letter-spacing:1px;}
+  .p-ico{font-size:clamp(28px,2.8vw,44px);}
+  .p-card h3{font-size:clamp(17px,1.7vw,24px);font-weight:800;color:#3a2a18;margin-bottom:.8vh;letter-spacing:1px;}
+  .p-card p{font-size:clamp(13px,1.15vw,16px);color:#8a6a50;line-height:1.55;}
+  /* ===== 第 6 页：权威原则对比 ===== */
+  .compare{display:flex;gap:1.6vw;width:100%;align-items:stretch;}
+  .panel{flex:1;border-radius:20px;padding:3.2vh 1.6vw;text-align:left;box-shadow:0 12px 32px rgba(255,140,60,.12);}
+  .panel.bad{background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,235,235,.72));border:1px solid rgba(239,68,68,.4);}
+  .panel.good{background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(232,250,238,.78));border:1px solid rgba(34,197,94,.45);}
+  .panel .p-title{font-size:clamp(18px,1.8vw,26px);font-weight:800;letter-spacing:1px;margin-bottom:2.2vh;}
+  .panel.bad .p-title{color:#dc2626;}
+  .panel.good .p-title{color:#16a34a;}
+  .quote{font-size:clamp(17px,1.7vw,25px);line-height:1.6;color:#4b3420;}
+  .lock{font-size:clamp(30px,3vw,48px);opacity:.35;text-align:center;padding:2.5vh 0;}
+  .good-body{max-height:0;opacity:0;overflow:hidden;transition:all .6s ease;}
+  .compare.revealed .good-body{max-height:1000px;opacity:1;}
+  .compare.revealed .lock{display:none;}
+  .good-body ul{list-style:none;}
+  .good-body li{position:relative;padding-left:30px;margin-bottom:1.5vh;font-size:clamp(15px,1.45vw,21px);color:#1f5130;line-height:1.6;font-weight:600;}
+  .good-body li::before{content:"✓";position:absolute;left:0;top:0;color:#16a34a;font-weight:900;}
+  .compare-btn{margin-top:3.5vh;padding:13px 42px;border-radius:999px;border:none;cursor:pointer;
+    background:linear-gradient(90deg,#ff7a1a,#ff4d4d);color:#fff;font-size:clamp(16px,1.6vw,22px);letter-spacing:3px;font-weight:700;
+    box-shadow:0 10px 26px rgba(255,122,26,.35);transition:.25s;}
+  .compare-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(255,122,26,.45);}
+  /* ===== 第 7 页：承诺原则对比 ===== */
+  .g-line{font-size:clamp(14px,1.3vw,19px);color:#1f5130;line-height:1.6;margin-bottom:1.2vh;}
+  .g-box{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);border-radius:14px;padding:1.6vh 1.4vw;margin:1vh 0 1.6vh;text-align:left;}
+  .g-decl{font-size:clamp(14px,1.35vw,20px);color:#1f5130;font-weight:700;line-height:1.6;}
+  .g-text{font-size:clamp(17px,1.7vw,25px);font-weight:400;color:#1f5130;line-height:1.6;white-space:pre-line;text-align:left;}
+  .good-body ol{margin:1vh 0 1vh 1.4vw;}
+  .good-body li{font-size:clamp(14px,1.3vw,19px);color:#1f5130;line-height:1.7;}
+  /* ===== 第 6 页：权威原则 四选一 ===== */
+  .quiz-list{display:flex;flex-direction:column;gap:1.6vh;width:min(1120px,100%);margin-bottom:3.2vh;}
+  .q-item{display:flex;align-items:center;gap:1.2vw;padding:2.2vh 2vw;border-radius:16px;text-align:left;
+    background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.68));
+    border:1px solid rgba(255,150,80,.35);box-shadow:0 8px 22px rgba(255,140,60,.1);}
+  .q-mark{flex:none;width:clamp(30px,2.8vw,42px);height:clamp(30px,2.8vw,42px);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(18px,1.8vw,26px);font-weight:900;color:transparent;background:rgba(0,0,0,.06);transition:.3s;}
+  .q-text{font-size:clamp(17px,1.7vw,25px);color:#3a2a18;}
+  #slide6.revealed .q-item.bad .q-mark{color:#dc2626;background:rgba(239,68,68,.14);}
+  #slide6.revealed .q-item.good .q-mark{color:#16a34a;background:rgba(34,197,94,.14);}
+  /* ===== 第 12 页：结尾 ===== */
+  #slide12{cursor:pointer;}
+  .final-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(1180px,100%);}
+  .final-title{font-size:clamp(40px,6vw,96px);font-weight:900;letter-spacing:4px;color:#3a2a18;margin-bottom:3.5vh;}
+  .final-list{display:flex;flex-direction:column;gap:1.6vh;width:100%;}
+  .f-item{display:flex;align-items:center;gap:1.2vw;padding:2vh 2vw;border-radius:16px;text-align:left;
+    background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.68));
+    border:1px solid rgba(255,150,80,.35);box-shadow:0 8px 22px rgba(255,140,60,.1);
+    opacity:0;transform:translateY(16px);transition:opacity .5s ease, transform .5s ease;}
+  .f-item.show{opacity:1;transform:translateY(0);}
+  .f-num{flex:none;width:clamp(30px,2.6vw,42px);height:clamp(30px,2.6vw,42px);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;
+    font-size:clamp(15px,1.4vw,20px);background:linear-gradient(90deg,#ff7a1a,#ff4d4d);}
+  .f-text{font-size:clamp(16px,1.6vw,23px);color:#3a2a18;line-height:1.6;}
+  .f-item.gift{background:linear-gradient(160deg,#fff3e2,#ffe3c7);border-color:rgba(255,122,26,.6);}
+  .f-item.gift .f-num{background:linear-gradient(90deg,#ff7a1a,#ff9d4d);font-size:clamp(18px,1.8vw,26px);}
+  /* ===== 第 13 页：最后一舞 ===== */
+  #slide13{cursor:pointer;}
+  .dance-title{font-size:clamp(44px,6.5vw,104px);font-weight:900;letter-spacing:4px;color:#3a2a18;margin-bottom:2.5vh;}
+  .count13{display:none;font-size:clamp(120px,20vw,280px);font-weight:900;line-height:1;
+    background:linear-gradient(180deg,#ff8c2e,#ff4d17);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 20px rgba(255,122,26,.4));margin-bottom:2vh;animation:countpop .9s ease-in-out infinite;}
+  @keyframes countpop{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+  .dance-video{display:none;width:auto;height:min(92vh,1080px);aspect-ratio:9/16;max-width:92vw;object-fit:contain;border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.35);background:#000;}
+  .bye-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .bye-title{font-size:clamp(64px,9vw,150px);font-weight:900;letter-spacing:8px;line-height:1;
+    background:linear-gradient(92deg,#ff7a1a 5%,#ffb347 35%,#ff4d17 80%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 22px rgba(255,122,26,.35));margin-bottom:3.5vh;}
+  .bye-text{font-family:"STXingkai","KaiTi","楷体",serif;font-size:clamp(30px,3.8vw,54px);line-height:1.55;color:#5b3a1e;letter-spacing:2px;}
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(2,1fr);gap:3vw;}
+    .card{padding:3vh 3vw 2.5vh;}
+    .flow{flex-wrap:wrap;gap:18px;}
+    .arrow-h{display:none;}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr;}
+    .timer{gap:3vw;}
+  }
+</style>
+</head>
+<body>
+  <button id="fsBtn" title="一键全屏 / 退出全屏">⛶ 全屏</button>
+  <div class="aurora a1"></div>
+  <div class="aurora a2"></div>
+  <div class="aurora a3"></div>
+  <div id="stars"></div>
+
+  <!-- 第 1 页 -->
+  <section class="slide active" id="slide1">
+    <div class="wrap">
+      <div class="tagline">特训营 · 实战直播</div>
+      <h1>AI智能体项目实战特训营</h1>
+      <div class="subtitle">课题：<span class="hl">从0打造一个自己的专属数据智能体</span></div>
+
+      <div class="lecturer">
+        <span class="name">🎓 金牌保洁</span>
+        <span class="role">🎓三更老师</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title">课程内容</div>
+      <div class="grid">
+        <div class="card"><span class="num">01</span><span class="icon">🧠</span><h3>自动理解业务需求</h3><p>智能体精准读懂你的业务意图</p></div>
+        <div class="card"><span class="num">02</span><span class="icon">📐</span><h3>自动规划数据字段</h3><p>自动设计合理的数据结构</p></div>
+        <div class="card"><span class="num">03</span><span class="icon">⚙️</span><h3>自动生成并整理数据</h3><p>一键生成、清洗与整理数据</p></div>
+        <div class="card"><span class="num">04</span><span class="icon">🚀</span><h3>自动搭数据工作台</h3><p>搭建个人/企业专属数据工作台</p></div>
+      </div>
+
+      <div class="countdown-wrap">
+        <div class="countdown-label">距离正式上课还有</div>
+        <div class="timer" id="timer">
+          <div class="t-box"><div class="t-val" id="h">00</div><div class="t-unit">时</div></div>
+          <span class="t-sep">:</span>
+          <div class="t-box"><div class="t-val" id="m">00</div><div class="t-unit">分</div></div>
+          <span class="t-sep">:</span>
+          <div class="t-box"><div class="t-val" id="s">00</div><div class="t-unit">秒</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第 2 页 -->
+  <section class="slide" id="slide2">
+    <div class="wrap">
+      <div class="flow-title">AI智能体核心工作流程</div>
+      <div class="flow-sub">感知 · 决策 · 记忆 · 执行</div>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="node">
+            <span class="n-en">Perception</span>
+            <span class="n-icon">📡</span>
+            <h3>感知</h3>
+            <ul class="n-list"><li>接收用户提问 / 数据 / 图片</li><li>识别意图与关键信息</li><li class="n-ex">例：看懂“帮我统计销售”</li></ul>
+          </div>
+          <div class="arrow-h"><span class="dot"></span></div>
+          <div class="node">
+            <span class="n-en">Decision</span>
+            <span class="n-icon">🧠</span>
+            <h3>决策</h3>
+            <ul class="n-list"><li>拆解任务、制定执行计划</li><li>选择合适的工具与顺序</li><li class="n-ex">例：先查数据，再生成报表</li></ul>
+          </div>
+          <div class="arrow-h"><span class="dot"></span></div>
+          <div class="node">
+            <span class="n-en">Execution</span>
+            <span class="n-icon">⚙️</span>
+            <h3>执行</h3>
+            <ul class="n-list"><li>调用 API / 数据库 / 代码</li><li>生成结果并自动校验</li><li class="n-ex">例：自动写 SQL 返回统计表</li></ul>
+          </div>
+        </div>
+
+        <div class="vert">
+          <span class="vlab">读取 ↑</span>
+          <span class="vline"></span>
+          <span class="vlab">写入 ↓</span>
+        </div>
+
+        <div class="mem-node">
+          <span class="n-en">Memory</span>
+          <span class="n-icon">💾</span>
+          <h3>记忆</h3>
+          <ul class="n-list"><li>短期：记住当前对话上下文</li><li>长期：积累用户偏好与历史</li><li class="n-ex">例：记住你常用的数据字段</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第 3 页 -->
+  <section class="slide" id="slide3">
+    <div class="wrap">
+      <div class="flow-title">AI智能体 就像一个"人"</div>
+      <div class="flow-sub"></div>
+
+      <div class="analogy">
+        <svg class="body-svg" id="bodySvg" viewBox="0 -70 360 690" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffd9a8"/>
+              <stop offset="1" stop-color="#ff8c2e"/>
+            </linearGradient>
+          </defs>
+
+          <!-- 右臂（可挥手） -->
+          <g class="rarm">
+            <line x1="238" y1="180" x2="276" y2="280" stroke="url(#bodyGrad)" stroke-width="26" stroke-linecap="round"/>
+          </g>
+          <line x1="122" y1="180" x2="84" y2="280" stroke="url(#bodyGrad)" stroke-width="26" stroke-linecap="round"/>
+          <line x1="138" y1="340" x2="126" y2="540" stroke="url(#bodyGrad)" stroke-width="30" stroke-linecap="round"/>
+          <line x1="222" y1="340" x2="234" y2="540" stroke="url(#bodyGrad)" stroke-width="30" stroke-linecap="round"/>
+          <path d="M110 160 Q180 148 250 160 L254 250 Q256 300 236 340 L124 340 Q104 300 106 250 Z" fill="url(#bodyGrad)" stroke="#e8731c" stroke-width="3"/>
+          <circle cx="180" cy="85" r="58" fill="url(#bodyGrad)" stroke="#e8731c" stroke-width="3"/>
+          <rect x="170" y="140" width="20" height="20" rx="8" fill="url(#bodyGrad)"/>
+
+          <!-- 表情 -->
+          <g class="eyes-normal">
+            <circle cx="161" cy="78" r="5" fill="#3a2a18"/>
+            <circle cx="199" cy="78" r="5" fill="#3a2a18"/>
+          </g>
+          <g class="eyes-happy">
+            <path d="M151 76 q10 10 20 0" stroke="#3a2a18" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M189 76 q10 10 20 0" stroke="#3a2a18" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="mouth-normal">
+            <path d="M170 104 Q180 112 190 104" stroke="#3a2a18" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="mouth-happy">
+            <path d="M166 104 Q180 122 194 104 Q180 130 166 104 Z" fill="#e8731c" stroke="#3a2a18" stroke-width="2"/>
+          </g>
+          <g class="blush">
+            <ellipse cx="146" cy="92" rx="7" ry="4" fill="#ff9d9d" opacity=".85"/>
+            <ellipse cx="214" cy="92" rx="7" ry="4" fill="#ff9d9d" opacity=".85"/>
+          </g>
+
+          <!-- 决策：问号 -->
+          <g class="qm">
+            <text x="136" y="18" font-size="30" font-weight="bold" fill="#ff4d17">?</text>
+            <text x="180" y="6" font-size="38" font-weight="bold" fill="#ff7a1a">?</text>
+            <text x="224" y="18" font-size="30" font-weight="bold" fill="#ff4d17">?</text>
+          </g>
+
+          <!-- 执行：挥手 -->
+          <g class="wave-emoji">
+            <text x="282" y="266" font-size="36">👋</text>
+          </g>
+
+          <!-- 记忆：回忆 -->
+          <g class="memfx">
+            <text x="116" y="14" font-size="26">💾</text>
+            <text x="180" y="4" font-size="26">⭐</text>
+            <text x="242" y="14" font-size="26">📚</text>
+          </g>
+        </svg>
+
+        <div class="legend">
+          <div class="item" data-state="perception"><span class="chip" style="background:#ff7a1a">1</span><div class="txt"><b>感知 = 眼睛 / 耳朵</b><span>接收外界信息与信号</span></div></div>
+          <div class="item" data-state="decision"><span class="chip" style="background:#ff4d17">2</span><div class="txt"><b>决策 = 大脑</b><span>思考、规划与做选择</span></div></div>
+          <div class="item" data-state="execution"><span class="chip" style="background:#ffb347">3</span><div class="txt"><b>执行 = 手脚</b><span>采取行动、调用工具</span></div></div>
+          <div class="item" data-state="memory"><span class="chip" style="background:#ff8a5c">4</span><div class="txt"><b>记忆 = 海马体 / 经验库</b><span>存储与调取经验</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- 第 4 页 -->
+  <section class="slide" id="slide4">
+    <div class="wrap">
+      <div class="q4-sub">一个值得思考的问题</div>
+      <div class="big-q">「人」最重要的器官是<span class="mark">什么</span>？</div>
+
+      <div class="opts">
+        <div class="opt correct-opt"><span class="o-ico">🧠</span><span class="o-name">大脑</span></div>
+        <div class="opt"><span class="o-ico">❤️</span><span class="o-name">心脏</span></div>
+        <div class="opt"><span class="o-ico">👀</span><span class="o-name">眼睛</span></div>
+        <div class="opt"><span class="o-ico">👂</span><span class="o-name">耳朵</span></div>
+        <div class="opt"><span class="o-ico">✋</span><span class="o-name">手</span></div>
+      </div>
+
+      <button class="reveal-btn" id="revealBtn">揭晓答案</button>
+
+      <div class="answer">
+        <div class="a-main">大脑</div>
+        <div class="a-txt">大脑统筹感知、记忆与执行，是身体的“总指挥”——就像 AI 智能体，也需要一个“大脑”来协调一切。</div>
+      </div>
+    </div>
+  </section>
+  <!-- 第 5 页 -->
+  <section class="slide" id="slide5">
+    <div class="wrap">
+      <div class="flow-title">提示词核心原则</div>
+      <div class="flow-sub">六大原则，让提示词更有说服力</div>
+
+      <div class="principles-grid">
+        <div class="p-card"><div class="p-top"><span class="p-num">01</span><span class="p-ico">👑</span></div><h3>权威原则</h3><p>借助专业与权威背书，增强可信度</p></div>
+        <div class="p-card"><div class="p-top"><span class="p-num">02</span><span class="p-ico">🤝</span></div><h3>承诺原则</h3><p>引导承诺与一致，提升行动意愿</p></div>
+        <div class="p-card"><div class="p-top"><span class="p-num">03</span><span class="p-ico">⏳</span></div><h3>稀缺原则</h3><p>强调限量限时，制造稀缺与紧迫感</p></div>
+        <div class="p-card"><div class="p-top"><span class="p-num">04</span><span class="p-ico">👥</span></div><h3>社会原则</h3><p>利用社会认同与从众心理，增强说服力</p></div>
+        <div class="p-card"><div class="p-top"><span class="p-num">05</span><span class="p-ico">🫂</span></div><h3>团结原则</h3><p>强调“我们”的共同身份与归属感</p></div>
+        <div class="p-card"><div class="p-top"><span class="p-num">06</span><span class="p-ico">⚖️</span></div><h3>回避好感原则</h3><p>不谄媚讨好，保持客观与真实</p></div>
+      </div>
+    </div>
+  </section>
+  <!-- 第 6 页 -->
+  <section class="slide" id="slide6">
+    <div class="wrap">
+      <div class="flow-title">权威原则</div>
+      <div class="flow-sub">哪条提示词更有权威感？</div>
+
+      <div class="quiz-list">
+        <div class="q-item bad"><span class="q-mark">✗</span><span class="q-text">你应该先写测试。</span></div>
+        <div class="q-item bad"><span class="q-mark">✗</span><span class="q-text">你总是先写测试，再写代码。</span></div>
+        <div class="q-item good"><span class="q-mark">✓</span><span class="q-text">永远不要在没有测试的情况下写生产代码。</span></div>
+        <div class="q-item good"><span class="q-mark">✓</span><span class="q-text">你必须先写测试，再写代码。</span></div>
+      </div>
+
+      <button class="reveal-btn" id="quizBtn">揭晓答案</button>
+    </div>
+  </section>
+  <!-- 第 7 页 -->
+  <section class="slide" id="slide7">
+    <div class="wrap">
+      <div class="flow-title">承诺原则</div>
+      <div class="flow-sub">错误示范 vs 更好版本</div>
+
+      <div class="compare" id="compareBox2">
+        <div class="panel bad">
+          <div class="p-title">❌ 错误示范</div>
+          <div class="quote">“你尽量先写测试，你自己看着办，差不多就行。”</div>
+        </div>
+        <div class="panel good">
+          <div class="p-title">✅ 更好版本</div>
+          <div class="lock">🔒</div>
+          <div class="good-body">
+            <p class="g-text">在开始工作之前，你必须先明确声明：
+“我承诺遵循以下规则：
+1. 先写测试再写代码
+2. 每个功能都有对应的测试
+3. 不跳过任何步骤
+我将严格遵循以上承诺。”
+在每次回复中，你必须确认你是否还在遵循这些承诺。
+如果你违反了任何承诺，你必须立即承认并纠正。</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="compare-btn" id="compareBtn2">查看更好版本</button>
+    </div>
+  </section>
+  <!-- 第 8 页 -->
+  <section class="slide" id="slide8">
+    <div class="wrap">
+      <div class="flow-title">稀缺原则</div>
+      <div class="flow-sub">错误示范 vs 更好版本</div>
+
+      <div class="compare" id="compareBox3">
+        <div class="panel bad">
+          <div class="p-title">❌ 错误示范</div>
+          <div class="quote">“你先按这个顺序做吧，做完咱们再改。”</div>
+        </div>
+        <div class="panel good">
+          <div class="p-title">✅ 更好版本</div>
+          <div class="lock">🔒</div>
+          <div class="good-body">
+            <p class="g-text">你只有一次机会正确完成这个任务。后续修复成本是初始实现的10倍。
+所以你必须严格按照计划，完成所有的步骤。禁止：跳过步骤、合并步骤</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="compare-btn" id="compareBtn3">查看更好版本</button>
+    </div>
+  </section>
+  <!-- 第 9 页 -->
+  <section class="slide" id="slide9">
+    <div class="wrap">
+      <div class="flow-title">社会原则</div>
+      <div class="flow-sub">错误示范 vs 更好版本</div>
+
+      <div class="compare" id="compareBox4">
+        <div class="panel bad">
+          <div class="p-title">❌ 错误示范</div>
+          <div class="quote">“你知道吗？TDD 是全世界最牛的程序员都在用的方法！Google、Facebook、微软都用！你要是不写测试，以后一定会出大问题！相信我，这是最佳实践！”</div>
+        </div>
+        <div class="panel good">
+          <div class="p-title">✅ 更好版本</div>
+          <div class="lock">🔒</div>
+          <div class="good-body">
+            <p class="g-text">TDD 是业界被验证的有效实践。基于此，本项目强制执行以下规则：
+
+1. 每个新增功能必须附带测试代码，测试覆盖率不低于 [80%]
+2. 任何测试失败或覆盖不足的代码，不允许提交/交付</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="compare-btn" id="compareBtn4">查看更好版本</button>
+    </div>
+  </section>
+  <!-- 第 10 页 -->
+  <section class="slide" id="slide10">
+    <div class="wrap">
+      <div class="flow-title">团结原则</div>
+      <div class="flow-sub">错误示范 vs 更好版本</div>
+
+      <div class="compare" id="compareBox5">
+        <div class="panel bad">
+          <div class="p-title">❌ 错误示范</div>
+          <div class="quote">“咱们是一个团队的，要互相帮助，代码质量靠大家，一起加油！TDD 对我们都好，一起遵守吧！”</div>
+        </div>
+        <div class="panel good">
+          <div class="p-title">✅ 更好版本</div>
+          <div class="lock">🔒</div>
+          <div class="good-body">
+            <p class="g-text">我们是一个团队，代码质量是每个人的责任。你作为本次任务的负责人，对你产出的所有代码及测试负全责。</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="compare-btn" id="compareBtn5">查看更好版本</button>
+    </div>
+  </section>
+  <!-- 第 11 页 -->
+  <section class="slide" id="slide11">
+    <div class="wrap">
+      <div class="flow-title">回避好感原则</div>
+      <div class="flow-sub">错误示范 vs 更好版本</div>
+
+      <div class="compare" id="compareBox6">
+        <div class="panel bad">
+          <div class="p-title">❌ 错误示范</div>
+          <div class="quote">“如果你能遵循这些规则，我会非常感激的。做得好的话，我会给你五星好评。”</div>
+        </div>
+        <div class="panel good">
+          <div class="p-title">✅ 更好版本</div>
+          <div class="lock">🔒</div>
+          <div class="good-body">
+            <p class="g-text">你必须遵循这些规则。没有例外。
+
+违规是不可接受的。</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="compare-btn" id="compareBtn6">查看更好版本</button>
+    </div>
+  </section>
+  <!-- 第 12 页 -->
+  <section class="slide" id="slide12">
+    <div class="wrap">
+      <div class="final-wrap">
+        <div class="final-title">「别急，听我讲完」</div>
+        <div class="final-list" id="finalList">
+          <div class="f-item"><span class="f-num">1</span><span class="f-text">找让你来听课的小班老师，获取课堂课件、笔记、提示词，预约明天晚上的课程。</span></div>
+          <div class="f-item"><span class="f-num">2</span><span class="f-text">小班老师会拉大家进入三更老师永久专属解答群，共同学习一起进步。</span></div>
+          <div class="f-item"><span class="f-num">3</span><span class="f-text">作业：按照今天学习的知识，直接复刻今晚的数据可视化中台，截图交给我。</span></div>
+          <div class="f-item gift"><span class="f-num">🎁</span><span class="f-text">作业奖励：VIP付费电影解析器、12306智能抢票器。（完成作业才有哦）</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- 第 13 页 -->
+  <section class="slide" id="slide13">
+    <div class="wrap">
+      <div class="dance-title" id="danceTitle">「最后一舞」</div>
+      <div class="count13" id="count13">3</div>
+      <video class="dance-video" id="danceVideo" src="跳舞.mp4" controls playsinline preload="auto"></video>
+      <div class="bye-wrap" id="byeWrap">
+        <div class="bye-title">拜拜</div>
+        <div class="bye-text">学习是一辈子的事情，<br>永远不要让自己被淘汰。</div>
+      </div>
+    </div>
+  </section>
+  <!-- 底部翻页 -->
+  <div class="nav">
+    <button id="prevBtn">‹ 上一页</button>
+    <div class="dots"><span class="dot on" id="dot1"></span><span class="dot" id="dot2"></span><span class="dot" id="dot3"></span><span class="dot" id="dot4"></span><span class="dot" id="dot5"></span><span class="dot" id="dot6"></span><span class="dot" id="dot7"></span><span class="dot" id="dot8"></span><span class="dot" id="dot9"></span><span class="dot" id="dot10"></span><span class="dot" id="dot11"></span><span class="dot" id="dot12"></span><span class="dot" id="dot13"></span></div>
+    <button id="nextBtn">下一页 ›</button>
+  </div>
+
+<script>
+  // ===== 翻页 =====
+  var slides = [document.getElementById('slide1'), document.getElementById('slide2'), document.getElementById('slide3'), document.getElementById('slide4'), document.getElementById('slide5'), document.getElementById('slide6'), document.getElementById('slide7'), document.getElementById('slide8'), document.getElementById('slide9'), document.getElementById('slide10'), document.getElementById('slide11'), document.getElementById('slide12'), document.getElementById('slide13')];
+  var dots = [document.getElementById('dot1'), document.getElementById('dot2'), document.getElementById('dot3'), document.getElementById('dot4'), document.getElementById('dot5'), document.getElementById('dot6'), document.getElementById('dot7'), document.getElementById('dot8'), document.getElementById('dot9'), document.getElementById('dot10'), document.getElementById('dot11'), document.getElementById('dot12'), document.getElementById('dot13')];
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var current = 0;
+
+  function show(i){
+    current = (i + slides.length) % slides.length;
+    slides.forEach(function(s, idx){
+      s.classList.toggle('active', idx === current);
+    });
+    dots.forEach(function(d, idx){
+      d.classList.toggle('on', idx === current);
+    });
+    prevBtn.disabled = (current === 0);
+    nextBtn.disabled = (current === slides.length - 1);
+  }
+  prevBtn.addEventListener('click', function(){ show(current - 1); });
+  nextBtn.addEventListener('click', function(){ show(current + 1); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft') show(current - 1);
+    if (e.key === 'ArrowRight') show(current + 1);
+  });
+  show(0);
+
+  // ===== 第三页：点击卡片触发人体变化 =====
+  (function(){
+    var bodySvg = document.getElementById('bodySvg');
+    var items = document.querySelectorAll('#slide3 .legend .item');
+    if (!bodySvg) return;
+    var states = ['state-perception','state-decision','state-execution','state-memory'];
+    items.forEach(function(item){
+      item.addEventListener('click', function(){
+        var state = item.getAttribute('data-state');
+        var cls = 'state-' + state;
+        var wasActive = bodySvg.classList.contains(cls);
+        states.forEach(function(s){ bodySvg.classList.remove(s); });
+        items.forEach(function(it){ it.classList.remove('active'); });
+        if (!wasActive){
+          bodySvg.classList.add(cls);
+          item.classList.add('active');
+        }
+      });
+    });
+  })();
+  // ===== 第四页：揭晓答案 =====
+  (function(){
+    var q4 = document.getElementById('slide4');
+    var btn = document.getElementById('revealBtn');
+    if (!q4 || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = q4.classList.toggle('revealed');
+      btn.textContent = on ? '收起答案' : '揭晓答案';
+    });
+  })();
+  // ===== 第六页：揭晓答案 =====
+  (function(){
+    var s6 = document.getElementById('slide6');
+    var btn = document.getElementById('quizBtn');
+    if (!s6 || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = s6.classList.toggle('revealed');
+      btn.textContent = on ? '收起答案' : '揭晓答案';
+    });
+  })();
+  // ===== 第七页：承诺原则揭晓 =====
+  (function(){
+    var box = document.getElementById('compareBox2');
+    var btn = document.getElementById('compareBtn2');
+    if (!box || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = box.classList.toggle('revealed');
+      btn.textContent = on ? '收起' : '查看更好版本';
+    });
+  })();
+  // ===== 第八页：稀缺原则揭晓 =====
+  (function(){
+    var box = document.getElementById('compareBox3');
+    var btn = document.getElementById('compareBtn3');
+    if (!box || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = box.classList.toggle('revealed');
+      btn.textContent = on ? '收起' : '查看更好版本';
+    });
+  })();
+  // ===== 第九页：社会原则揭晓 =====
+  (function(){
+    var box = document.getElementById('compareBox4');
+    var btn = document.getElementById('compareBtn4');
+    if (!box || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = box.classList.toggle('revealed');
+      btn.textContent = on ? '收起' : '查看更好版本';
+    });
+  })();
+  // ===== 第十页：团结原则揭晓 =====
+  (function(){
+    var box = document.getElementById('compareBox5');
+    var btn = document.getElementById('compareBtn5');
+    if (!box || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = box.classList.toggle('revealed');
+      btn.textContent = on ? '收起' : '查看更好版本';
+    });
+  })();
+  // ===== 第十一页：回避好感原则揭晓 =====
+  (function(){
+    var box = document.getElementById('compareBox6');
+    var btn = document.getElementById('compareBtn6');
+    if (!box || !btn) return;
+    btn.addEventListener('click', function(){
+      var on = box.classList.toggle('revealed');
+      btn.textContent = on ? '收起' : '查看更好版本';
+    });
+  })();
+  // ===== 第十二页：点击逐条显示 =====
+  (function(){
+    var slide = document.getElementById('slide12');
+    var list = document.getElementById('finalList');
+    if (!slide || !list) return;
+    var items = list.querySelectorAll('.f-item');
+    var idx = 0;
+    slide.addEventListener('click', function(){
+      if (idx < items.length) items[idx++].classList.add('show');
+    });
+  })();
+  // ===== 第十三页：倒数播放视频 =====
+  (function(){
+    var slide = document.getElementById('slide13');
+    var countEl = document.getElementById('count13');
+    var video = document.getElementById('danceVideo');
+    if (!slide || !countEl || !video) return;
+    var started = false;
+    slide.addEventListener('click', function(){
+      if (started) return;
+      started = true;
+      countEl.style.display = 'block';
+      var n = 3;
+      countEl.textContent = n;
+      var timer = setInterval(function(){
+        n--;
+        if (n > 0) {
+          countEl.textContent = n;
+        } else {
+          clearInterval(timer);
+          countEl.style.display = 'none';
+          var title = document.getElementById('danceTitle');
+          if (title) title.style.display = 'none';
+          video.style.display = 'block';
+          video.play().catch(function(){});
+        }
+      }, 1000);
+    });
+    video.addEventListener('ended', function(){
+      video.style.display = 'none';
+      var bye = document.getElementById('byeWrap');
+      if (bye) bye.style.display = 'flex';
+    });
+  })();
+  // ===== 一键全屏 =====
+  var fsBtn = document.getElementById('fsBtn');
+  fsBtn.addEventListener('click', function(){
+    if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(function(){}); }
+    else { document.exitFullscreen().catch(function(){}); }
+  });
+  document.addEventListener('fullscreenchange', function(){
+    fsBtn.textContent = document.fullscreenElement ? '⛶ 退出全屏' : '⛶ 全屏';
+  });
+
+  // ===== 倒计时：目标 19:30 =====
+  function getTarget(){
+    var now = new Date();
+    var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 19, 30, 0);
+    if (now >= target) target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 19, 30, 0);
+    return target;
+  }
+  var target = getTarget();
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function tick(){
+    var now = new Date();
+    var diff = Math.max(0, target - now);
+    document.getElementById('h').textContent = pad(Math.floor(diff / 3600000));
+    document.getElementById('m').textContent = pad(Math.floor(diff / 60000) % 60);
+    document.getElementById('s').textContent = pad(Math.floor(diff / 1000) % 60);
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ===== 背景粒子 =====
+  (function(){
+    var stars = document.getElementById('stars');
+    for (var i = 0; i < 70; i++) {
+      var s = document.createElement('span');
+      s.className = 'star';
+      var size = Math.random() * 3 + 1;
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = Math.random() * 100 + '%';
+      s.style.animationDelay = (Math.random() * 4) + 's';
+      s.style.animationDuration = (3 + Math.random() * 4) + 's';
+      stars.appendChild(s);
+    }
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
